@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>WebSocket Echo Client</title>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" type="text/css" href="/c/screen.css" />
+  <script>
+"use strict";
+window.addEventListener("load", function(event) {
+	var $, getX, getY, moveListener, refresh, refreshArenas, getReady, score, win, sendObject;
+	var showLoginPage, showArenaChooserPage, showArenaPage;
+	var forEach = Array.prototype.forEach;
+	
+	var currentArenaIdx = -1;
+
+	$ = function (selector) {
+		return document.querySelector(selector);
+	};
+	
+
+	var errMsg = $('#errMsg'), infoMsg = $('#infoMsg');
+	var socket = undefined;
+	
+	var status = $("#status");
+	var ballPointer = $('#ballPointer');
+	var player1pointer = $('#player1pointer');
+	var player2pointer = $('#player2pointer');
+	
+	var arenaPageView = {
+		gameArena: $('#gameArena'),
+		player1: {
+			name: $('#player1score > span:first-child'),
+			score: $('#player1score > span:last-child')
+		},
+		player2: {
+			name: $('#player2score > span:last-child'),
+			score: $('#player2score > span:first-child')
+		},
+		waitingList: $('#waitingList > span:last-child')
+	};
+	
+	var showError = function (msg) {
+		errMsg.textContent = msg || "";
+	};
+	var showInfo = function (msg, toast) {
+		infoMsg.textContent = msg || "";
+		if (toast) {
+			setTimeout(showInfo, 3000);
+		}
+	};
+	
+	/*var gameCanvas = $('#gameAreaCanvas');
+	var ctx = gameCanvas.getContext("2d");
+
+	//var gradient = ctx.createLinearGradient(0, 0, 600, 200);
+	var gradient = ctx.createRadialGradient(300, 100, 30, 300, 100, 300);
+	gradient.addColorStop(0, 'silver');
+	gradient.addColorStop(1, 'gray');
+	ctx.fillStyle = gradient;
+	ctx.fillRect(0, 0, 600, 200);
+
+	ctx.fillStyle = '#000000';
+	ctx.fillRect(20, 80, 10, 40);*/
+
+	var establishConnection = function (playerName) {
+		var url = 'ws://' + location.host + '/' + playerName;
+		socket = new WebSocket(url, 'pong');
+
+		socket.addEventListener('open', function () {
+			showInfo('Connected to the server!', true);
+			showArenaChooserPage();
+		});
+		socket.addEventListener('close', function (err, x) {
+			socket = null;
+			showError("You were disconnected from the server!");
+			showLoginPage();
+		});
+		socket.addEventListener('message', function (message) {
+			var request = JSON.parse(message.data);
+
+			if (request.type !== 'refresh') {
+				//console.log(message.data);
+			}
+
+			if (request.type === 'getready') {
+				getReady(request.data);
+			} else if (request.type === 'start') {
+		
+			} else if (request.type === 'score') {
+				score(request.scores);
+			} else if (request.type === 'win') {
+				score(request.scores);
+				win(request.winner);
+			} else if (request.type === 'refresh') {
+				refresh(request.data);
+			} else if (request.type === 'arenastate') {
+				refreshArenas(request.data);
+			} else if (request.type === 'arenachooser') {
+				showArenaChooserPage();
+			}
+		});
+	};
+
+	showLoginPage = function () {
+		$('#loginPage').style.display = '';
+		$('#arenaChooserPage').style.display = 'none';
+		$('#arenaPage').style.display = 'none';
+		currentArenaIdx = -1;
+	};
+	showArenaChooserPage = function () {
+		$('#loginPage').style.display = 'none';
+		$('#arenaChooserPage').style.display = '';
+		$('#arenaPage').style.display = 'none';
+		currentArenaIdx = -1;
+	};
+	showArenaPage = function () {
+		$('#loginPage').style.display = 'none';
+		$('#arenaChooserPage').style.display = 'none';
+		$('#arenaPage').style.display = '';
+	};
+	
+	$('#loginPage > div').addEventListener('click', function () {
+		var name = $('#playerName').value.trim();
+		if (name.length === 0) {
+			showError("You don't want to play as Unnamed player, do you?!");
+		} else {
+			showError();
+			showInfo("Connecting to the server..");
+			establishConnection(name);
+		}
+	});
+	
+	$('#arenaChooserPage > div').addEventListener('click', function () {
+		socket.close();
+		socket = null;
+	});
+
+	$('#leaveArena').addEventListener('click', function () {
+		sendObject({ type: 'leave' });
+	});
+
+	$('#quitGame').addEventListener('click', function () {
+		socket.close();
+		socket = null;
+	});
+
+	forEach.call(document.querySelectorAll('#arenaChooserPage > table td'), function (dom) {
+		dom.addEventListener('click', function () {
+			currentArenaIdx = Number(dom.id.substring(5)) - 1;
+			showArenaPage();
+			sendObject({
+				type: 'join',
+				arena: currentArenaIdx
+			});
+		});
+	});
+
+	getReady = function (players) {
+		arenaPageView.player1.name.textContent = players[0];
+		arenaPageView.player2.name.textContent = players[1];
+		arenaPageView.player1.score.textContent = '0';
+		arenaPageView.player2.score.textContent = '0';
+		arenaPageView.gameArena.addEventListener('mousemove', moveListener);
+	};
+	
+	score = function (scores) {
+		arenaPageView.player1.score.textContent = scores[0];
+		arenaPageView.player2.score.textContent = scores[1];
+	};
+
+	win = function (player) {
+		alert("And the winner is: " + player);
+	}
+
+	refresh = function (data) {
+		ballPointer.style.left = (data.ball.x + 'px');
+		ballPointer.style.top = (data.ball.y + 'px');
+
+		if (data.playerOne) {
+			player1pointer.style.top = (data.playerOne.y - 20) + 'px';
+		}
+		if (data.playerTwo) {
+			player2pointer.style.top = (data.playerTwo.y - 20) + 'px';
+		}
+	};
+
+	refreshArenas = function (arenas) {
+		arenas.forEach(function (arena, idx) {
+			var players = ['', ''], waiting = [], prefix = '#arena' + (idx + 1);
+
+			arena.forEach(function (player, pIdx) {
+				if (pIdx < 2) {
+					players[pIdx] = (player.name + ' ' + player.score);
+				} else {
+					waiting.push(player.name);
+				}
+			});
+			$(prefix + 'player1').textContent = players[0];
+			$(prefix + 'player2').textContent = players[1];
+			$(prefix + 'waiting').textContent = waiting.join(', ');
+			
+			if (currentArenaIdx === idx) {
+				arenaPageView.waitingList.textContent = waiting.join(', ');
+			}
+		});
+	};
+	
+	sendObject = function (obj) {
+		socket.send(JSON.stringify(obj));
+	};
+
+	moveListener = function (e) {
+		sendObject({
+			type: 'move',
+			x: getX(e),
+			y: getY(e)
+		});
+	};
+
+	getX = function (e) {
+		return e.clientX - e.currentTarget.offsetLeft;
+	};
+
+	getY = function (e) {
+		return e.clientY - e.currentTarget.offsetTop;
+	};
+});
+	
+	
+  </script>
+</head>
+<body>
+	<h1>Pong ].[ Arena</h1>
+	
+	<div id='errMsg'></div>
+	<div id='infoMsg'></div>
+	
+	<div id='loginPage'>
+		<br/><br/>
+		<span>Name</span><input type='text' id='playerName' autofocus='autofocus' />
+		<div>Enter the game</div>
+	</div>
+	
+	<div id='arenaChooserPage' style='display: none;'>
+		<table>
+			<tr>
+				<td id='arena1'>
+					<div>Arena 1</div>
+					<div>
+						<div id='arena1player1'></div>
+						<div id='arena1player2'></div>
+					</div>
+					<div>
+						<marquee id='arena1waiting'></marquee>
+					</div>
+				</td>
+				<td id='arena2'>
+					<div>Arena 2</div>
+					<div>
+						<div id='arena2player1'></div>
+						<div id='arena2player2'></div>
+					</div>
+					<div>
+						<marquee id='arena2waiting'></marquee>
+					</div>
+				</td>
+				<td id='arena3'>
+					<div>Arena 3</div>
+					<div>
+						<div id='arena3player1'>Player One</div>
+						<div id='arena3player2'>Player Two</div>
+					</div>
+					<div>
+						<marquee id='arena3waiting'>Player 3, Player 4</marquee>
+					</div>
+				</td>
+				<td id='arena4'>
+					<div>Arena 4</div>
+					<div>
+						<div id='arena4player1'>Player One</div>
+						<div id='arena4player2'>Player Two</div>
+					</div>
+					<div>
+						<marquee id='arena4waiting'>Player 3, Player 4</marquee>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<div>Quit</div>
+	</div>
+	
+	
+	<div id='arenaPage' style='display: none;'>
+		<div id='scores'>
+			<div id='player1score'>
+				<span></span>
+				<span></span>
+			</div>
+			<div id='player2score'>
+				<span></span>
+				<span></span>
+			</div>
+		</div>
+		<div id='gameArena'>
+			<div id='player1pointer'></div>
+			<div id='player2pointer'></div>
+			<div id='ballPointer'></div>
+		</div>
+		<div id='waitingList'>
+			<span>Waiting:</span>
+			<span></span>
+		</div>
+		<div>
+			<div id='leaveArena'>Leave Arena</div>
+			<div id='quitGame'>Rage Quit</div>
+		</div>
+		<!--<canvas id='gameAreaCanvas' width='600' height='200'>
+		</canvas>-->
+	</div>
+</body>
+</html>

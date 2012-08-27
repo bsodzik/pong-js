@@ -1,0 +1,14 @@
+{
+  "name": "PongJS",
+  "version": "0.0.1",
+  "description": "Pong Multiplayer",
+  "main": "lib/server.js",
+  "dependencies": {
+	"websocket": ""
+  },
+  "scripts": {
+    "start": "node lib/server.js"
+  },
+  "author": "Tomasz Przybyla",
+  "license": "BSD"
+}
