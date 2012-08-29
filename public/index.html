@@ -7,7 +7,7 @@
   <script>
 "use strict";
 window.addEventListener("load", function(event) {
-	var $, getX, getY, moveListener, refresh, refreshArenas, getReady, score, win, sendObject;
+	var $, getX, getY, moveListener, refresh, refreshArena, refreshArenas, getReady, score, win, quit, sendObject;
 	var showLoginPage, showArenaChooserPage, showArenaPage;
 	var forEach = Array.prototype.forEach;
 	
@@ -91,6 +91,8 @@ window.addEventListener("load", function(event) {
 			} else if (request.type === 'win') {
 				score(request.scores);
 				win(request.winner);
+			} else if (request.type === 'quit') {
+				quit(request.player);
 			} else if (request.type === 'refresh') {
 				refresh(request.data);
 			} else if (request.type === 'arenastate') {
@@ -156,10 +158,7 @@ window.addEventListener("load", function(event) {
 	});
 
 	getReady = function (players) {
-		arenaPageView.player1.name.textContent = players[0];
-		arenaPageView.player2.name.textContent = players[1];
-		arenaPageView.player1.score.textContent = '0';
-		arenaPageView.player2.score.textContent = '0';
+		refreshArena(players);
 		arenaPageView.gameArena.addEventListener('mousemove', moveListener);
 	};
 	
@@ -169,8 +168,12 @@ window.addEventListener("load", function(event) {
 	};
 
 	win = function (player) {
-		alert("And the winner is: " + player);
-	}
+		showInfo("And the winner is: " + player);
+	};
+
+	quit = function (player) {
+		showInfo("Player " + player + " escaped from the arena");
+	};
 
 	refresh = function (data) {
 		ballPointer.style.left = (data.ball.x + 'px');
@@ -181,6 +184,17 @@ window.addEventListener("load", function(event) {
 		}
 		if (data.playerTwo) {
 			player2pointer.style.top = (data.playerTwo.y - 20) + 'px';
+		}
+	};
+
+	refreshArena = function (players) {
+		if (players.length) {
+			arenaPageView.player1.name.textContent = players[0];
+			arenaPageView.player1.score.textContent = '0';
+			if (players.length > 1) {
+				arenaPageView.player2.name.textContent = players[1];
+				arenaPageView.player2.score.textContent = '0';
+			}
 		}
 	};
 
