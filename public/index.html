@@ -11,7 +11,7 @@ window.addEventListener("load", function(event) {
 	var showLoginPage, showArenaChooserPage, showArenaPage;
 	var forEach = Array.prototype.forEach;
 	
-	var currentArenaIdx = -1;
+	var currentArenaIdx = null;
 
 	$ = function (selector) {
 		return document.querySelector(selector);
@@ -107,13 +107,13 @@ window.addEventListener("load", function(event) {
 		$('#loginPage').style.display = '';
 		$('#arenaChooserPage').style.display = 'none';
 		$('#arenaPage').style.display = 'none';
-		currentArenaIdx = -1;
+		currentArenaIdx = null;
 	};
 	showArenaChooserPage = function () {
 		$('#loginPage').style.display = 'none';
 		$('#arenaChooserPage').style.display = '';
 		$('#arenaPage').style.display = 'none';
-		currentArenaIdx = -1;
+		currentArenaIdx = null;
 	};
 	showArenaPage = function () {
 		$('#loginPage').style.display = 'none';
@@ -158,7 +158,6 @@ window.addEventListener("load", function(event) {
 	});
 
 	getReady = function (players) {
-		refreshArena(players);
 		arenaPageView.gameArena.addEventListener('mousemove', moveListener);
 	};
 	
@@ -187,36 +186,49 @@ window.addEventListener("load", function(event) {
 		}
 	};
 
-	refreshArena = function (players) {
+	refreshArena = function (arena) {
+		var players = arena.players, waiting = [];
 		if (players.length) {
-			arenaPageView.player1.name.textContent = players[0];
-			arenaPageView.player1.score.textContent = '0';
+			arenaPageView.player1.name.textContent = players[0].name;
+			arenaPageView.player1.score.textContent = players[0].score;
 			if (players.length > 1) {
-				arenaPageView.player2.name.textContent = players[1];
-				arenaPageView.player2.score.textContent = '0';
+				arenaPageView.player2.name.textContent = players[1].name;
+				arenaPageView.player2.score.textContent = players[1].score;
+			} else {
+				arenaPageView.player2.name.textContent = '';
+				arenaPageView.player2.score.textContent = '';
 			}
+		} else {
+			arenaPageView.player1.name.textContent = '';
+			arenaPageView.player1.score.textContent = '';
 		}
+
+		players.slice(2).forEach(function (player) {
+			waiting.push(player.name);
+		});
+		arenaPageView.waitingList.textContent = waiting.join(', ');
 	};
 
 	refreshArenas = function (arenas) {
-		arenas.forEach(function (arena, idx) {
-			var players = ['', ''], waiting = [], prefix = '#arena' + (idx + 1);
+		if (currentArenaIdx == null) {
+			arenas.forEach(function (arena, idx) {
+				var players = ['', ''], waiting = [], prefix = '#arena' + (idx + 1);
 
-			arena.forEach(function (player, pIdx) {
-				if (pIdx < 2) {
-					players[pIdx] = (player.name + ' ' + player.score);
-				} else {
-					waiting.push(player.name);
-				}
+				arena.players.forEach(function (player, pIdx) {
+					if (pIdx < 2) {
+						players[pIdx] = (player.name + ' ' + player.score);
+					} else {
+						waiting.push(player.name);
+					}
+				});
+				$(prefix + 'player1').textContent = players[0];
+				$(prefix + 'player2').textContent = players[1];
+				$(prefix + 'waiting').textContent = waiting.join(', ');
 			});
-			$(prefix + 'player1').textContent = players[0];
-			$(prefix + 'player2').textContent = players[1];
-			$(prefix + 'waiting').textContent = waiting.join(', ');
-			
-			if (currentArenaIdx === idx) {
-				arenaPageView.waitingList.textContent = waiting.join(', ');
-			}
-		});
+		} else {
+			var arena = arenas[currentArenaIdx];
+			refreshArena(arena);
+		}
 	};
 	
 	sendObject = function (obj) {
@@ -281,21 +293,63 @@ window.addEventListener("load", function(event) {
 				<td id='arena3'>
 					<div>Arena 3</div>
 					<div>
-						<div id='arena3player1'>Player One</div>
-						<div id='arena3player2'>Player Two</div>
+						<div id='arena3player1'></div>
+						<div id='arena3player2'></div>
 					</div>
 					<div>
-						<marquee id='arena3waiting'>Player 3, Player 4</marquee>
+						<marquee id='arena3waiting'></marquee>
 					</div>
 				</td>
 				<td id='arena4'>
 					<div>Arena 4</div>
 					<div>
-						<div id='arena4player1'>Player One</div>
-						<div id='arena4player2'>Player Two</div>
+						<div id='arena4player1'></div>
+						<div id='arena4player2'></div>
 					</div>
 					<div>
-						<marquee id='arena4waiting'>Player 3, Player 4</marquee>
+						<marquee id='arena4waiting'></marquee>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td id='arena5'>
+					<div>Arena 5</div>
+					<div>
+						<div id='arena5player1'></div>
+						<div id='arena5player2'></div>
+					</div>
+					<div>
+						<marquee id='arena5waiting'></marquee>
+					</div>
+				</td>
+				<td id='arena6'>
+					<div>Arena 6</div>
+					<div>
+						<div id='arena6player1'></div>
+						<div id='arena6player2'></div>
+					</div>
+					<div>
+						<marquee id='arena6waiting'></marquee>
+					</div>
+				</td>
+				<td id='arena7'>
+					<div>Arena 7</div>
+					<div>
+						<div id='arena7player1'></div>
+						<div id='arena7player2'></div>
+					</div>
+					<div>
+						<marquee id='arena7waiting'></marquee>
+					</div>
+				</td>
+				<td id='arena8'>
+					<div>Arena 8</div>
+					<div>
+						<div id='arena8player1'></div>
+						<div id='arena8player2'></div>
+					</div>
+					<div>
+						<marquee id='arena8waiting'></marquee>
 					</div>
 				</td>
 			</tr>
@@ -321,7 +375,7 @@ window.addEventListener("load", function(event) {
 			<div id='ballPointer'></div>
 		</div>
 		<div id='waitingList'>
-			<span>Waiting:</span>
+			<span>Waiting list:</span>
 			<span></span>
 		</div>
 		<div>

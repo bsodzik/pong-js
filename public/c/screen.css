@@ -105,8 +105,8 @@ div#arenaChooserPage > table td > div:nth-of-type(1) {
 }
 
 #arenaPage > #scores {
-	display: inline-block;
 	width: 800px;
+	margin: auto;
 }
  
 #arenaPage > #scores > div {
@@ -127,7 +127,7 @@ div#arenaChooserPage > table td > div:nth-of-type(1) {
 	height: 400px;
 	border: 1px solid black;
 	position: relative;
-	display: inline-block;
+	margin: auto;
 }
 
 #arenaPage > #gameArena > div:not(:last-child) {
