@@ -10,8 +10,7 @@ window.addEventListener("load", function(event) {
 	var $, getX, getY, moveListener, refresh, refreshArena, refreshArenas, getReady, score, win, quit, sendObject;
 	var showLoginPage, showArenaChooserPage, showArenaPage;
 	var forEach = Array.prototype.forEach;
-	
-	var currentArenaIdx = null;
+	var currentArenaIdx = null, yPrev = -1;
 
 	$ = function (selector) {
 		return document.querySelector(selector);
@@ -236,11 +235,15 @@ window.addEventListener("load", function(event) {
 	};
 
 	moveListener = function (e) {
-		sendObject({
-			type: 'move',
-			x: getX(e),
-			y: getY(e)
-		});
+		var y = getY(e);
+
+		if (Math.abs(y - yPrev) > 1) {
+			yPrev = y;
+			sendObject({
+				type: 'move',
+				y: y
+			});
+		}
 	};
 
 	getX = function (e) {
