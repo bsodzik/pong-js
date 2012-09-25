@@ -3,7 +3,9 @@
 <head>
   <title>WebSocket Echo Client</title>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/c/screen.css" />
+  <script src="/socket.io/socket.io.js"></script>
   <script>
 "use strict";
 window.addEventListener("load", function(event) {
@@ -62,24 +64,23 @@ window.addEventListener("load", function(event) {
 	ctx.fillRect(20, 80, 10, 40);*/
 
 	var establishConnection = function (playerName) {
-		var url = 'ws://' + location.host + '/' + playerName;
-		socket = new WebSocket(url, 'pong');
+		var url = location.protocol + '://' + location.host;
+		socket = io.connect(url);
 
-		socket.addEventListener('open', function () {
+		socket.on('connect', function () {
 			showInfo('Connected to the server!', true);
 			showArenaChooserPage();
 		});
-		socket.addEventListener('close', function (err, x) {
+		socket.on('disconnect', function (err) {
 			socket = null;
 			showError("You were disconnected from the server!");
 			showLoginPage();
 		});
-		socket.addEventListener('message', function (message) {
-			var request = JSON.parse(message.data);
-
-			if (request.type !== 'refresh') {
-				//console.log(message.data);
-			}
+		socket.on('error', function (err) {
+			console.log('error',err);
+		});
+		socket.on('message', function (message) {
+			var request = JSON.parse(message);
 
 			if (request.type === 'getready') {
 				getReady(request.data);
@@ -132,7 +133,7 @@ window.addEventListener("load", function(event) {
 	});
 	
 	$('#arenaChooserPage > div').addEventListener('click', function () {
-		socket.close();
+		socket.disconnect();
 		socket = null;
 	});
 
@@ -141,7 +142,7 @@ window.addEventListener("load", function(event) {
 	});
 
 	$('#quitGame').addEventListener('click', function () {
-		socket.close();
+		socket.disconnect();
 		socket = null;
 	});
 
@@ -253,9 +254,13 @@ window.addEventListener("load", function(event) {
 	getY = function (e) {
 		return e.clientY - e.currentTarget.offsetTop;
 	};
+
+	/*document.body.addEventListener('touchmove', function (event) {
+		event.preventDefault();
+		showInfo('Touching: x='+event.touches[0].pageX+', y='+event.touches[0].pageY);
+	}, false);*/
 });
-	
-	
+
   </script>
 </head>
 <body>

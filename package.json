@@ -4,7 +4,6 @@
   "description": "Pong Multiplayer",
   "main": "lib/server.js",
   "dependencies": {
-    "websocket": ""
   },
   "scripts": {
     "start": "node lib/server.js"
