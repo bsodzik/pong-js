@@ -8,18 +8,19 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
 "use strict";
+var $ = function (selector) {
+	return document.querySelector(selector);
+};
+
 window.addEventListener("load", function(event) {
-	var $, getX, getY, moveListener, refresh, refreshArena, refreshArenas, getReady, score, win, quit, sendObject;
+	var getX, getY, showInfo, showError;
+	var moveListener, touchListener, refresh, refreshArena, refreshArenas, getReady, score, scoreAndWin, quit, sendObject;
 	var showLoginPage, showArenaChooserPage, showArenaPage;
 	var forEach = Array.prototype.forEach;
 	var currentArenaIdx = null, yPrev = -1;
-
-	$ = function (selector) {
-		return document.querySelector(selector);
-	};
 	
+	var playerType;
 
-	var errMsg = $('#errMsg'), infoMsg = $('#infoMsg');
 	var socket = undefined;
 	
 	var status = $("#status");
@@ -29,6 +30,7 @@ window.addEventListener("load", function(event) {
 	
 	var arenaPageView = {
 		gameArena: $('#gameArena'),
+		gameArenaTiny: $('#gameArenaTiny'),
 		player1: {
 			name: $('#player1score > span:first-child'),
 			score: $('#player1score > span:last-child')
@@ -40,36 +42,21 @@ window.addEventListener("load", function(event) {
 		waitingList: $('#waitingList > span:last-child')
 	};
 	
-	var showError = function (msg) {
-		errMsg.textContent = msg || "";
-	};
-	var showInfo = function (msg, toast) {
-		infoMsg.textContent = msg || "";
-		if (toast) {
-			setTimeout(showInfo, 3000);
-		}
-	};
-	
-	/*var gameCanvas = $('#gameAreaCanvas');
-	var ctx = gameCanvas.getContext("2d");
-
-	//var gradient = ctx.createLinearGradient(0, 0, 600, 200);
-	var gradient = ctx.createRadialGradient(300, 100, 30, 300, 100, 300);
-	gradient.addColorStop(0, 'silver');
-	gradient.addColorStop(1, 'gray');
-	ctx.fillStyle = gradient;
-	ctx.fillRect(0, 0, 600, 200);
-
-	ctx.fillStyle = '#000000';
-	ctx.fillRect(20, 80, 10, 40);*/
-
 	var establishConnection = function (playerName) {
-		var url = location.protocol + '://' + location.host;
-		socket = io.connect(url);
+		var url = location.protocol + '//' + location.host;
+		console.log(url);
+		socket = io.connect(url, { reconnect: false });
 
+		// Socket.IO events
 		socket.on('connect', function () {
-			showInfo('Connected to the server!', true);
-			showArenaChooserPage();
+			socket.emit('login', {
+				player: playerName,
+				spectator: false,
+				resolution: {
+					width: screen.availWidth,
+					height: screen.availHeight
+				}
+			});
 		});
 		socket.on('disconnect', function (err) {
 			socket = null;
@@ -79,28 +66,22 @@ window.addEventListener("load", function(event) {
 		socket.on('error', function (err) {
 			console.log('error',err);
 		});
-		socket.on('message', function (message) {
-			var request = JSON.parse(message);
 
-			if (request.type === 'getready') {
-				getReady(request.data);
-			} else if (request.type === 'start') {
-		
-			} else if (request.type === 'score') {
-				score(request.scores);
-			} else if (request.type === 'win') {
-				score(request.scores);
-				win(request.winner);
-			} else if (request.type === 'quit') {
-				quit(request.player);
-			} else if (request.type === 'refresh') {
-				refresh(request.data);
-			} else if (request.type === 'arenastate') {
-				refreshArenas(request.data);
-			} else if (request.type === 'arenachooser') {
-				showArenaChooserPage();
-			}
+		// Game events
+		socket.on('logged', function (player) {
+			playerType = player.type;
+			console.log('pltype',playerType);
+			showInfo('Connected to the server!', true);
+			showArenaChooserPage();
 		});
+		
+		socket.on('getready', getReady);
+		socket.on('score', score);
+		socket.on('win', scoreAndWin);
+		socket.on('quit', quit);
+		socket.on('refresh', refresh);
+		socket.on('arenastate', refreshArenas);
+		socket.on('arenachooser', showArenaChooserPage);
 	};
 
 	showLoginPage = function () {
@@ -119,6 +100,12 @@ window.addEventListener("load", function(event) {
 		$('#loginPage').style.display = 'none';
 		$('#arenaChooserPage').style.display = 'none';
 		$('#arenaPage').style.display = '';
+
+		if (playerType === 'tiny') {
+			arenaPageView.gameArenaTiny.style.display = '';
+		} else {
+			arenaPageView.gameArena.style.display = '';
+		}
 	};
 	
 	$('#loginPage > div').addEventListener('click', function () {
@@ -134,7 +121,6 @@ window.addEventListener("load", function(event) {
 	
 	$('#arenaChooserPage > div').addEventListener('click', function () {
 		socket.disconnect();
-		socket = null;
 	});
 
 	$('#leaveArena').addEventListener('click', function () {
@@ -157,8 +143,13 @@ window.addEventListener("load", function(event) {
 		});
 	});
 
-	getReady = function (players) {
-		arenaPageView.gameArena.addEventListener('mousemove', moveListener);
+	getReady = function () {
+		if (playerType === 'normal') {
+			arenaPageView.gameArena.addEventListener('mousemove', moveListener);
+		} else if (playerType === 'tiny') {
+			arenaPageView.gameArenaTiny.addEventListener('touchstart', touchListener, false);
+			arenaPageView.gameArenaTiny.addEventListener('touchmove', touchListener, false);
+		}
 	};
 	
 	score = function (scores) {
@@ -166,12 +157,13 @@ window.addEventListener("load", function(event) {
 		arenaPageView.player2.score.textContent = scores[1];
 	};
 
-	win = function (player) {
-		showInfo("And the winner is: " + player);
+	scoreAndWin = function (data) {
+		score(data.scores);
+		showInfo("And the winner is: " + data.winner);
 	};
 
 	quit = function (player) {
-		showInfo("Player " + player + " escaped from the arena");
+		showInfo("Player " + player.name + " escaped from the arena");
 	};
 
 	refresh = function (data) {
@@ -247,6 +239,16 @@ window.addEventListener("load", function(event) {
 		}
 	};
 
+	touchListener = function (e) {
+		e.preventDefault();
+		showInfo('Touching: x='+e.touches[0].pageX+', y='+e.touches[0].pageY);
+
+		sendObject({
+			type: 'move',
+			y: e.touches[0].pageX
+		});
+	};
+
 	getX = function (e) {
 		return e.clientX - e.currentTarget.offsetLeft;
 	};
@@ -255,10 +257,24 @@ window.addEventListener("load", function(event) {
 		return e.clientY - e.currentTarget.offsetTop;
 	};
 
-	/*document.body.addEventListener('touchmove', function (event) {
-		event.preventDefault();
-		showInfo('Touching: x='+event.touches[0].pageX+', y='+event.touches[0].pageY);
-	}, false);*/
+	showInfo = (function () {
+		var infoMsg = $('#infoMsg');
+		return function (msg, toast) {
+			infoMsg.textContent = msg || "";
+			if (toast) {
+				setTimeout(showInfo, 3000);
+			}
+		};
+	})();
+
+	showError = (function () {
+		var errMsg = $('#errMsg');
+		return function (msg) {
+			errMsg.textContent = msg || "";
+		};
+	})();
+
+	showInfo("Screen res: " + screen.availWidth + " / " + screen.availHeight);
 });
 
   </script>
@@ -377,11 +393,12 @@ window.addEventListener("load", function(event) {
 				<span></span>
 			</div>
 		</div>
-		<div id='gameArena'>
+		<div id='gameArena' style='display: none;'>
 			<div id='player1pointer'></div>
 			<div id='player2pointer'></div>
 			<div id='ballPointer'></div>
 		</div>
+		<div id='gameArenaTiny' style='display: none;'></div>
 		<div id='waitingList'>
 			<span>Waiting list:</span>
 			<span></span>
@@ -390,8 +407,6 @@ window.addEventListener("load", function(event) {
 			<div id='leaveArena'>Leave Arena</div>
 			<div id='quitGame'>Rage Quit</div>
 		</div>
-		<!--<canvas id='gameAreaCanvas' width='600' height='200'>
-		</canvas>-->
 	</div>
 </body>
 </html>
