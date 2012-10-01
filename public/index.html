@@ -15,9 +15,11 @@ var $ = function (selector) {
 window.addEventListener("load", function(event) {
 	var getX, getY, showInfo, showError;
 	var moveListener, touchListener, refresh, refreshArena, refreshArenas, getReady, score, scoreAndWin, quit, sendObject;
-	var showLoginPage, showArenaChooserPage, showArenaPage;
+	var showLoginPage, showArenaChooserPage, showArenaPage, setCurrPos, scale;
 	var forEach = Array.prototype.forEach;
-	var currentArenaIdx = null, yPrev = -1;
+	var currentArenaIdx = null;
+	
+	var prevPos, currPos;
 	
 	var playerType;
 
@@ -53,8 +55,10 @@ window.addEventListener("load", function(event) {
 				player: playerName,
 				spectator: false,
 				resolution: {
-					width: screen.availWidth,
-					height: screen.availHeight
+					//width: screen.availWidth,
+					//height: screen.availHeight
+					width: screen.width,
+					height: screen.height
 				}
 			});
 		});
@@ -70,7 +74,6 @@ window.addEventListener("load", function(event) {
 		// Game events
 		socket.on('logged', function (player) {
 			playerType = player.type;
-			console.log('pltype',playerType);
 			showInfo('Connected to the server!', true);
 			showArenaChooserPage();
 		});
@@ -149,6 +152,7 @@ window.addEventListener("load", function(event) {
 		} else if (playerType === 'tiny') {
 			arenaPageView.gameArenaTiny.addEventListener('touchstart', touchListener, false);
 			arenaPageView.gameArenaTiny.addEventListener('touchmove', touchListener, false);
+			arenaPageView.gameArenaTiny.addEventListener('touchend', touchListener, false);
 		}
 	};
 	
@@ -228,33 +232,22 @@ window.addEventListener("load", function(event) {
 	};
 
 	moveListener = function (e) {
-		var y = getY(e);
-
-		if (Math.abs(y - yPrev) > 1) {
-			yPrev = y;
-			sendObject({
-				type: 'move',
-				y: y
-			});
-		}
+		setCurrPos(e.clientY - e.currentTarget.offsetTop);
 	};
 
 	touchListener = function (e) {
 		e.preventDefault();
+		setCurrPos(scale(e.touches[0].pageX));
 		showInfo('Touching: x='+e.touches[0].pageX+', y='+e.touches[0].pageY);
-
-		sendObject({
-			type: 'move',
-			y: e.touches[0].pageX
-		});
 	};
 
-	getX = function (e) {
-		return e.clientX - e.currentTarget.offsetLeft;
+	setCurrPos = function (val) {
+		prevPos = currPos;
+		currPos = val;
 	};
 
-	getY = function (e) {
-		return e.clientY - e.currentTarget.offsetTop;
+	scale = function (val) {
+		return Math.round((val * 100) / screen.width);
 	};
 
 	showInfo = (function () {
@@ -274,7 +267,22 @@ window.addEventListener("load", function(event) {
 		};
 	})();
 
-	showInfo("Screen res: " + screen.availWidth + " / " + screen.availHeight);
+	(function move() {
+		if (prevPos !== currPos) {
+			sendObject({
+				type: 'move',
+				y: currPos
+			});
+		}
+		setTimeout(move, 20);
+	})();
+
+	//showInfo("Screen res: " + screen.availWidth + " / " + screen.availHeight);
+	showInfo("Screen res: " + screen.width + " / " + screen.height);
+
+	if (screen.width < 800) {
+		$('body').className = 'tiny';	
+	}
 });
 
   </script>

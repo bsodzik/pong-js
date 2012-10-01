@@ -1,10 +1,10 @@
 
-canvas#gameAreaCanvas {
-	border: 1px solid black;
-}
-
 body {
 	font-family: Verdana;
+}
+
+body.tiny {
+	font-size: 0.5em;
 }
 
 body > h1 {
@@ -13,13 +13,13 @@ body > h1 {
 
 div#errMsg {
 	text-align: center;
-	font-size: 16px;
+	font-size: 1.15em;
 	color: red;
 }
 
 div#infoMsg {
 	text-align: center;
-	font-size: 16px;
+	font-size: 1.15em;
 	color: green;
 }
 
@@ -33,7 +33,7 @@ div#loginPage {
 }
 
 div#loginPage > div{
-	font-size: 28px;
+	font-size: 1.7em;
 	cursor: pointer;
 	border: 1px solid black;
 	padding: 10px;
@@ -52,7 +52,7 @@ div#arenaChooserPage {
 
 div#arenaChooserPage > div {
 	display: inline-block;
-	font-size: 18px;
+	font-size: 1.2em;
 	cursor: pointer;
 	border: 1px solid black;
 	padding: 5px;
@@ -75,7 +75,7 @@ div#arenaChooserPage > table td {
 }
 
 div#arenaChooserPage > table td > div:nth-of-type(1) {
-	font-size: 28px;
+	font-size: 1.5em;
 	font-weight: bold;
 }
 
@@ -105,7 +105,8 @@ div#arenaChooserPage > table td > div:nth-of-type(1) {
 }
 
 #arenaPage > #scores {
-	width: 800px;
+	width: 100%;
+	max-width: 800px;
 	margin: auto;
 }
  
@@ -162,7 +163,8 @@ div#arenaChooserPage > table td > div:nth-of-type(1) {
 }
 
 #arenaPage > #waitingList {
-	width: 800px;
+	width: 100%;
+	max-width: 800px;
 	display: inline-block;
 	padding: 5px 5px 10px 5px;
 }
