@@ -46,14 +46,13 @@ window.addEventListener("load", function(event) {
 	
 	var establishConnection = function (playerName) {
 		var url = location.protocol + '//' + location.host;
-		console.log(url);
 		socket = io.connect(url, { reconnect: false });
 
 		// Socket.IO events
 		socket.on('connect', function () {
 			socket.emit('login', {
 				player: playerName,
-				spectator: false,
+				spectator: (location.pathname.indexOf('spectator') > 0),
 				resolution: {
 					//width: screen.availWidth,
 					//height: screen.availHeight
