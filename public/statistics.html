@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>PongJS :: statistics</title>
+  <meta charset="UTF-8" />
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+</head>
+<body style='text-align:center;margin-top:200px;'>
+ 	<canvas id='chart-emitted' width='800' height='300' style='border:1px solid black;'></canvas>
+ 	<canvas id='chart-received' width='800' height='300' style='border:1px solid black;'></canvas>
+	<script type='text/javascript'>
+		var chartEmitted = document.getElementById('chart-emitted');
+		var chartReceived = document.getElementById('chart-received');
+		var contextEmitted = chartEmitted.getContext('2d');
+		var contextReceived = chartReceived.getContext('2d');
+		var width = 800, height = 300, delta = 0, barWidth = 16;
+		var isRunning = false, timeout;
+
+		var drawBar = function (context, value) {
+			context.beginPath();
+			context.rect(delta * barWidth, height - value, barWidth, value);
+			context.fillStyle = 'lightblue';
+			context.fill();
+			context.lineWidth = 1;
+			context.strokeStyle = 'blue';
+			context.stroke();
+		};
+		
+		var paint = function (data) {
+			contextEmitted.clearRect(0, 0, width, height);
+			contextReceived.clearRect(0, 0, width, height);
+
+			data.forEach(function (stat) {
+				drawBar(contextEmitted, stat.emitted);
+				drawBar(contextReceived, stat.received);
+				delta++;
+			});
+			delta = 0;
+		};
+		
+		var refresh = function() {
+			if (isRunning) {
+				$.getJSON('stats', paint);
+			}
+			
+			timeout = setTimeout(refresh, 1000);
+		};
+
+		$(function() {
+			var switchor = $('#switchor');
+
+			switchor.click(function (e) {
+				if (isRunning === true) {
+					isRunning = false;
+					clearTimeout(timeout);
+					$('#switchor').text("Start");
+				} else {
+					isRunning = true;
+					refresh();
+					$('#switchor').text("Stop");
+				}
+			});
+		});
+
+	</script>
+	<div id='switchor' style='border: 1px solid black;'>Start</div>
+</body>
+</html>

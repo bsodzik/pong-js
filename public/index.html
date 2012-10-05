@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>WebSocket Echo Client</title>
+  <title>Pong ].[ Arena</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/c/screen.css" />
@@ -52,7 +52,7 @@ window.addEventListener("load", function(event) {
 		socket.on('connect', function () {
 			socket.emit('login', {
 				player: playerName,
-				spectator: (location.pathname.indexOf('spectator') > 0),
+				pathname: location.pathname,
 				resolution: {
 					//width: screen.availWidth,
 					//height: screen.availHeight
@@ -265,9 +265,12 @@ window.addEventListener("load", function(event) {
 			errMsg.textContent = msg || "";
 		};
 	})();
-
+//var cnt = 0;
 	(function move() {
 		if (prevPos !== currPos) {
+			prevPos = currPos;
+
+//			++cnt;
 			sendObject({
 				type: 'move',
 				y: currPos
@@ -282,6 +285,12 @@ window.addEventListener("load", function(event) {
 	if (screen.width < 800) {
 		$('body').className = 'tiny';	
 	}
+
+/*(function print() {
+	console.log('Sent: ' + cnt);
+	cnt = 0;
+	setTimeout(print, 1000);
+})();*/
 });
 
   </script>
