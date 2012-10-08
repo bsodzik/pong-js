@@ -1,9 +1,10 @@
 {
   "name": "PongJS",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Pong Multiplayer",
   "main": "lib/server.js",
   "dependencies": {
+    "socket.io": ">=0.9"
   },
   "scripts": {
     "start": "node lib/server.js"
@@ -12,6 +13,6 @@
   "license": "BSD",
   "subdomain": "bsodzik",
   "engines": {
-    "node": "0.8.1"
+    "node": ">=0.8"
   }
 }

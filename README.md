@@ -3,6 +3,4 @@ pong-js
 
 PongJS multiplayer game
 
-TODO:
-- spectator mode - spectators never play, /spectator url turns on spectator mode
-- statistics - send/received requests per second, number of connected players, active games. Turned on with /statistics url
+BUG: In Opera Mobile touchemove event blocks JS execution (setTimeout's are not invoked). Reported with id 13299@bugs.opera.com

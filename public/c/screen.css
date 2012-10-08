@@ -105,7 +105,7 @@ div#arenaChooserPage > table td > div:nth-of-type(1) {
 }
 
 #arenaPage > #scores {
-	width: 100%;
+	width: 95%;
 	max-width: 800px;
 	margin: auto;
 }
@@ -132,7 +132,7 @@ div#arenaChooserPage > table td > div:nth-of-type(1) {
 }
 
 #arenaPage > #gameArenaTiny {
-	width: 100%;
+	width: 95%;
 	height: 100px;
 	background-color: red;
 	position: relative;
@@ -163,7 +163,7 @@ div#arenaChooserPage > table td > div:nth-of-type(1) {
 }
 
 #arenaPage > #waitingList {
-	width: 100%;
+	width: 95%;
 	max-width: 800px;
 	display: inline-block;
 	padding: 5px 5px 10px 5px;
