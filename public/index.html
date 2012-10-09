@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Pong ].[ Arena</title>
+  <title>Pong :: Arena</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/c/screen.css" />
@@ -279,9 +279,7 @@ window.addEventListener('load', function(event) {
 		};
 	})();
 
-	var cnt = 0;
 	sendMoveMessage = function () {
-		showInfo("Move: " + (cnt++));
 		if (prevPos !== currPos) {
 			prevPos = currPos;
 			sendObject({
@@ -292,7 +290,7 @@ window.addEventListener('load', function(event) {
 		moveTimeout = setTimeout(sendMoveMessage, 20);
 	};
 
-	showInfo("Screen res: " + screen.width + " / " + screen.height);
+	//showInfo("Screen res: " + screen.width + " / " + screen.height);
 
 	if (screen.width < 800) {
 		$('body').className = 'tiny';	

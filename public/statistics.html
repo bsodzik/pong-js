@@ -1,68 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>PongJS :: statistics</title>
+  <title>PongJS :: Statistics</title>
   <meta charset="UTF-8" />
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  <script src="/j/jquery-1.8.2.min.js"></script>
 </head>
-<body style='text-align:center;margin-top:200px;'>
- 	<canvas id='chart-emitted' width='800' height='300' style='border:1px solid black;'></canvas>
- 	<canvas id='chart-received' width='800' height='300' style='border:1px solid black;'></canvas>
+<body style='text-align:center;'>
+ 	<canvas id='chart' width='800' height='300' style='border:1px solid black;'></canvas>
 	<script type='text/javascript'>
-		var chartEmitted = document.getElementById('chart-emitted');
-		var chartReceived = document.getElementById('chart-received');
-		var contextEmitted = chartEmitted.getContext('2d');
-		var contextReceived = chartReceived.getContext('2d');
-		var width = 800, height = 300, delta = 0, barWidth = 16;
+		var width = 800, height = 300, barWidth = 16;
+		var chart = document.getElementById('chart');
+		var context = chart.getContext('2d');
 		var isRunning = false, timeout;
+		var statsArr = [], currStats, details, mouseMoveListener;
+		var drawBar, paint, refresh;
 
-		var drawBar = function (context, value) {
+		drawBar = function (value, idx, colors) {
 			context.beginPath();
-			context.rect(delta * barWidth, height - value, barWidth, value);
-			context.fillStyle = 'lightblue';
+			context.rect(idx * barWidth, height - value, barWidth, value);
+			context.fillStyle = colors[0];
 			context.fill();
 			context.lineWidth = 1;
-			context.strokeStyle = 'blue';
+			context.strokeStyle = colors[1];
 			context.stroke();
 		};
-		
-		var paint = function (data) {
-			contextEmitted.clearRect(0, 0, width, height);
-			contextReceived.clearRect(0, 0, width, height);
 
-			data.forEach(function (stat) {
-				drawBar(contextEmitted, stat.emitted);
-				drawBar(contextReceived, stat.received);
-				delta++;
+		paint = function (data) {
+			statsArr = data;
+			context.clearRect(0, 0, width, height);
+
+			data.forEach(function (stat, idx) {
+				drawBar(stat.emitted, idx, ['lightblue', 'blue']);
+				drawBar(stat.received, idx, ['green', 'darkgreen']);
 			});
-			delta = 0;
 		};
-		
-		var refresh = function() {
+
+		refresh = function() {
 			if (isRunning) {
 				$.getJSON('stats', paint);
+				timeout = setTimeout(refresh, 1000);
 			}
-			
-			timeout = setTimeout(refresh, 1000);
+		};
+
+		mouseMoveListener = function (e) {
+			var x = e.clientX - e.currentTarget.offsetLeft
+			  , y = e.clientY - e.currentTarget.offsetTop
+			  , idx = Math.floor(x / barWidth);
+
+			if (statsArr[idx] !== currStats) {
+				currStats = statsArr[idx];
+				details.text(JSON.stringify(currStats));
+			}
 		};
 
 		$(function() {
 			var switchor = $('#switchor');
-
 			switchor.click(function (e) {
 				if (isRunning === true) {
 					isRunning = false;
 					clearTimeout(timeout);
-					$('#switchor').text("Start");
+					switchor.text("Start");
 				} else {
 					isRunning = true;
 					refresh();
-					$('#switchor').text("Stop");
+					switchor.text("Stop");
 				}
 			});
+
+			details = $('#details');
+			chart.addEventListener('mousemove', mouseMoveListener);
 		});
 
 	</script>
+	<div id='details'></div>
 	<div id='switchor' style='border: 1px solid black;'>Start</div>
 </body>
 </html>
