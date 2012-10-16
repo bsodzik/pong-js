@@ -290,7 +290,8 @@ window.addEventListener('load', function(event) {
 		moveTimeout = setTimeout(sendMoveMessage, 20);
 	};
 
-	//showInfo("Screen res: " + screen.width + " / " + screen.height);
+	showInfo("Screen res: " + screen.availWidth + " / " + screen.availHeight);
+	// Problem with 800/480
 
 	if (screen.width < 800) {
 		$('body').className = 'tiny';	
