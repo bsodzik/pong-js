@@ -11,6 +11,10 @@ To connect as spectator use URL ``http://localhost/spectator``.
 
 To monitor server statistics use URL ``http://localhost/statistics``.
 
+TODO:
+- use ``webmake`` to organize client code
+- use ``domjs`` to build html content
+- implement 'jedi' mode :)
 
 Known bugs:
 In Opera Mobile touchemove event blocks JS execution (setTimeout's are not invoked). Reported with id 13299@bugs.opera.com
