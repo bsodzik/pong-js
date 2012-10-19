@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/c/screen.css" />
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/j/jedi.js"></script>
   <script>
 "use strict";
 var $ = function (selector) {
@@ -14,11 +15,12 @@ var $ = function (selector) {
 
 window.addEventListener('load', function(event) {
 	var showInfo, showError;
-	var moveListener, touchListener, refresh, refreshArena, refreshArenas, getReady, score, scoreAndWin, quit, sendObject;
+	var moveListener, touchListener, jediListener, refresh, refreshArena, refreshArenas, getReady, score, scoreAndWin, quit, sendObject;
 	var showLoginPage, showArenaChooserPage, showArenaPage, setCurrPos, scale;
 	var sendMoveMessage, moveTimeout, cleanup;
 	var forEach = Array.prototype.forEach;
 	var currentArenaIdx = null;
+	var jedi;
 	
 	var prevPos, currPos;
 	
@@ -74,6 +76,13 @@ window.addEventListener('load', function(event) {
 			playerType = player.type;
 			showInfo('Connected to the server!', true);
 			showArenaChooserPage();
+			
+			if (location.pathname === '/jedi') {
+				console.log('oooo');
+				jedi = JEDI($('#camera'), $("#canvas-source"), $("#canvas-blended"));
+				jedi.init();
+				jedi.onPositionChange(jediListener);
+			}
 		});
 		
 		socket.on('getready', getReady);
@@ -146,7 +155,11 @@ window.addEventListener('load', function(event) {
 
 	getReady = function () {
 		if (playerType === 'normal') {
-			arenaPageView.gameArena.addEventListener('mousemove', moveListener, false);
+			if (jedi) {
+				jedi.start();
+			} else {
+				arenaPageView.gameArena.addEventListener('mousemove', moveListener, false);
+			}
 		} else if (playerType === 'tiny') {
 			arenaPageView.gameArenaTiny.addEventListener('touchstart', touchListener, false);
 			arenaPageView.gameArenaTiny.addEventListener('touchmove', touchListener, false);
@@ -174,10 +187,10 @@ window.addEventListener('load', function(event) {
 		ballPointer.style.top = (data.ball.y + 'px');
 
 		if (data.playerOne) {
-			player1pointer.style.top = (data.playerOne.y - 20) + 'px';
+			player1pointer.style.top = (data.playerOne.y - 30) + 'px';
 		}
 		if (data.playerTwo) {
-			player2pointer.style.top = (data.playerTwo.y - 20) + 'px';
+			player2pointer.style.top = (data.playerTwo.y - 30) + 'px';
 		}
 	};
 
@@ -243,7 +256,11 @@ window.addEventListener('load', function(event) {
 		arenaPageView.gameArenaTiny.removeEventListener('touchstart', touchListener, false);
 		arenaPageView.gameArenaTiny.removeEventListener('touchmove', touchListener, false);
 		arenaPageView.gameArenaTiny.removeEventListener('touchend', touchListener, false);
+		if (jedi) {
+			jedi.stop();
+		}
 	};
+
 	moveListener = function (e) {
 		setCurrPos(e.clientY - e.currentTarget.offsetTop);
 	};
@@ -251,6 +268,16 @@ window.addEventListener('load', function(event) {
 	touchListener = function (e) {
 		e.preventDefault();
 		setCurrPos(scale(e.touches[0].clientX));
+	};
+
+	jediListener = function (jediPos, jediPrevPos) {
+		if (jediPos <= 10) {
+			setCurrPos(0);
+		} else if (jediPos >= 110) {
+			setCurrPos(400);
+		} else {
+			setCurrPos(Math.round((jediPos * 400) / 120));
+		}
 	};
 
 	setCurrPos = function (val) {
@@ -429,5 +456,13 @@ window.addEventListener('load', function(event) {
 			<div id='quitGame'>Rage Quit</div>
 		</div>
 	</div>
+
+	<div id='jediBlock' style='display: none;'>
+		<video id="camera" autoplay width="640" height="480"></video>
+		<canvas id="canvas-source" width="640" height="480"></canvas>
+		
+	</div>
+	<canvas id="canvas-blended" width="50" height="480" style="border: 1px solid black;position: absolute;top: 100px;left: 820px;padding:20px;"></canvas>
+
 </body>
 </html>

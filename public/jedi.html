@@ -167,7 +167,7 @@ detector = function () {
 };
 window.addEventListener('load', function (event) {
 	var blend, detect;
-	video = $('#webcam');
+	video = $('#camera');
 	canvasSource = $("#canvas-source");
 	canvasBlended = $("#canvas-blended");
 	contextSource = canvasSource.getContext('2d');
@@ -209,7 +209,7 @@ window.addEventListener('load', function (event) {
   </script>
 </head>
 <body>
-	<video id="webcam" autoplay width="640" height="480" style="display:none;"></video>
+	<video id="camera" autoplay width="640" height="480" style="display:none;"></video>
 	<canvas id="canvas-source" width="640" height="480" style="display:none;"></canvas>
 	<canvas id="canvas-blended" width="50" height="480" style="border: 1px solid black;"></canvas>
 </body>
