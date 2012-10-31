@@ -65,7 +65,7 @@ window.JEDI = function (video, canvasSource, canvasBlended) {
 		return function () {
 			var sourceData, blendedData;
 			// get webcam image data
-			sourceData = contextSource.getImageData(0, 0, 50, height);
+			sourceData = contextSource.getImageData(590, 0, 50, height);
 			// create an image if the previous image doesn’t exist
 			if (!lastImageData) lastImageData = sourceData;//contextSource.getImageData(0, 0, width, height);
 			// create a ImageData instance to receive the blended result
@@ -188,16 +188,19 @@ window.JEDI = function (video, canvasSource, canvasBlended) {
 			drawVideo();
 			blend();
 			detected = detect();
+			if (detected === -1) {
+				detected = pos;
+			}
 			if (detected !== -1) {
 				prevPos = pos;
 				pos = detected;
 				filteredPrevPos = filteredPos;
-				filteredPos = (pos * 100 + filteredPrevPos * 200) / (300);
+				filteredPos = Math.round((pos * 75 + filteredPrevPos * 150) / (225));
 				//console.log(pos, Math.round(filteredPos));
 				console.log(pos);
 				if (positionChange) {
-					//positionChange(filteredPos, filteredPrevPos);
-					positionChange(pos);
+					positionChange(filteredPos, filteredPrevPos);
+					//positionChange(pos);
 				}
 			}
 			var t1 = new Date();
@@ -210,8 +213,8 @@ window.JEDI = function (video, canvasSource, canvasBlended) {
 			init: function () {
 				contextSource = canvasSource.getContext('2d');
 				contextBlended = canvasBlended.getContext('2d');
-				//contextSource.translate(canvasSource.width, 0);
-				//contextSource.scale(-1, 1);
+				contextSource.translate(canvasSource.width, 0);
+				contextSource.scale(-1, 1);
 				registerCamera(video);
 				blend = blender();
 				detect = detector();
