@@ -100,61 +100,49 @@ window.JEDI = function (video, canvasSource, canvasBlended) {
 		};
 
 		var findPos = function () {
-			var i, steps, lastPos, cnt = 0;
+			var i, steps, lastPos;
 
-			console.log('CurrPos: '+pos+', Is: '+(isSelected(pos)));
 			if (isSelected(pos)) {
 				lastPos = pos;
 				steps = Math.floor(pos / step);
 				for (i = pos - steps; i >= 0; --i) {
-				++cnt;
 					if (isSelected(i)) {
 						lastPos = i;
 					} else {
-						console.log('CNT',cnt);
 						return lastPos;
 					}
 				}
 				if (lastPos !== pos) {
-					console.log('CNT',cnt);
 					return lastPos;
 				}
 				// Nothing upward? Then go to the dungeons..
 				steps = Math.floor((blocks - pos) / step);
 				for (i = pos + step; i < blocks; ++i) {
-				++cnt;
 					if (isSelected(i)) {
-						console.log('CNT',cnt);
 						return i;
 					}
 				}
-				console.log('CNT',cnt);
 				return pos;
 			} else {
 				steps = Math.floor((blocks - pos) / step);
 				for (i = pos + step; i < blocks; ++i) {
-				++cnt;
 					if (isSelected(i)) {
 						// TODO: Perform more accurate search
-						console.log('CNT',cnt);
 						return i;
 					}
 				}
 				// Strange.. Nothing found? Let's go up!
 				steps = Math.floor(pos / step);
 				for (i = pos - steps; i >= 0; --i) {
-				++cnt;
 					if (isSelected(i)) {
 						lastPos = i;
 					} else {
 						if (lastPos) {
-							console.log('CNT',cnt);
 							return lastPos;
 						}
 					}
 				}
 				// Still nothing? Then fuck you, no more searching :)
-				console.log('CNT',cnt);
 				return -1;
 			}
 		};
@@ -178,34 +166,30 @@ window.JEDI = function (video, canvasSource, canvasBlended) {
 		  , pos = 0, prevPos = 0, filteredPos = 0, filteredPrevPos = 0;
 
 		update = function updateMyself() {
-			var detected = -1;
-			var t0 = new Date();
+			var detected;
 
 			if (!isStarted) {
 				return;
 			}
-		
+
 			drawVideo();
 			blend();
 			detected = detect();
 			if (detected === -1) {
 				detected = pos;
 			}
-			if (detected !== -1) {
-				prevPos = pos;
-				pos = detected;
-				filteredPrevPos = filteredPos;
-				filteredPos = Math.round((pos * 75 + filteredPrevPos * 150) / (225));
-				//console.log(pos, Math.round(filteredPos));
-				console.log(pos);
-				if (positionChange) {
-					positionChange(filteredPos, filteredPrevPos);
-					//positionChange(pos);
-				}
-			}
-			var t1 = new Date();
 
-			//console.log('TimeTaken:', (t1 - t0));
+			prevPos = pos;
+			pos = detected;
+			filteredPrevPos = filteredPos;
+			filteredPos = Math.round((pos * 75 + filteredPrevPos * 150) / (225));
+			//console.log(pos, Math.round(filteredPos));
+			//console.log(pos);
+			if (positionChange) {
+				positionChange(filteredPos, filteredPrevPos);
+				//positionChange(pos);
+			}
+
 			timeout = setTimeout(update, 80);
 		};
 

@@ -1,6 +1,6 @@
 {
   "name": "PongJS",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Pong Multiplayer",
   "main": "lib/server.js",
   "dependencies": {
